@@ -8,9 +8,9 @@ class Source {
     public static final String WILDCARD = "others";
 
     // name of element/attribute
-    private String name;
+    private final String name;
     // element or attribute
-    private boolean attribute;
+    private final boolean attribute;
 
     public Source(String name) { this(name, false); }
 

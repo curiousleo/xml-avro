@@ -24,7 +24,7 @@ public class SchemaBuilder {
     private boolean debug;
     private Resolver resolver;
 
-    private static Map<Short, Schema.Type> primitives = new HashMap<>();
+    private static final Map<Short, Schema.Type> primitives = new HashMap<>();
     static {
         primitives.put(XSConstants.BOOLEAN_DT, Schema.Type.BOOLEAN);
 
@@ -51,7 +51,7 @@ public class SchemaBuilder {
         primitives.put(XSConstants.DATETIME_DT, Schema.Type.LONG);
     }
 
-    private Map<String, Schema> schemas = new LinkedHashMap<>();
+    private final Map<String, Schema> schemas = new LinkedHashMap<>();
 
     public boolean getDebug() { return debug; }
     public void setDebug(boolean debug) { this.debug = debug; }
@@ -405,7 +405,7 @@ public class SchemaBuilder {
     }
 
     private class EntityResolver implements XMLEntityResolver {
-        private Resolver resolver;
+        private final Resolver resolver;
         private EntityResolver(Resolver resolver) { this.resolver = resolver; }
 
         @Override
@@ -419,7 +419,7 @@ public class SchemaBuilder {
         }
     }
 
-    public static interface Resolver {
+    public interface Resolver {
         InputStream getStream(String systemId);
     }
 }

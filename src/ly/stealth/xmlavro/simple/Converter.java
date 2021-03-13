@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Converter {
-    private static Protocol protocol;
+    private static final Protocol protocol;
     static {
         try {
             InputStream stream = Converter.class.getResourceAsStream("xml.avsc");

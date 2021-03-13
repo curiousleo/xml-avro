@@ -46,7 +46,7 @@ public class DatumBuilder {
     public static void setDefaultTimeZone(TimeZone timeZone) { defaultTimeZone = timeZone; }
     public static TimeZone getDefaultTimeZone() { return defaultTimeZone; }
 
-    private Schema schema;
+    private final Schema schema;
     private boolean caseSensitiveNames = true;
 
     public DatumBuilder(Schema schema) {
@@ -56,12 +56,10 @@ public class DatumBuilder {
     public boolean isCaseSensitiveNames() { return caseSensitiveNames; }
     public void setCaseSensitiveNames(boolean caseSensitiveNames) { this.caseSensitiveNames = caseSensitiveNames; }
 
-    @SuppressWarnings("unchecked")
     public <T> T createDatum(String xml) {
         return createDatum(new StringReader(xml));
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T createDatum(File file) {
         try (InputStream stream = new FileInputStream(file)) {
             return createDatum(stream);
@@ -70,17 +68,14 @@ public class DatumBuilder {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T createDatum(Reader reader) {
         return createDatum(new InputSource(reader));
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T createDatum(InputStream stream) {
         return createDatum(new InputSource(stream));
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T createDatum(InputSource source) {
         return createDatum(parse(source));
     }
@@ -113,6 +108,7 @@ public class DatumBuilder {
         NodeList childNodes = el.getChildNodes();
         Schema elementType = schema.getElementType();
         int numElements = childNodes.getLength();
+        //noinspection rawtypes
         GenericData.Array array = new GenericData.Array(numElements, schema);
 
         for (int i = 0; i < numElements; i++) {
@@ -192,7 +188,7 @@ public class DatumBuilder {
                 List<String> ignoredNamespaces = Arrays.asList("http://www.w3.org/2000/xmlns/", "http://www.w3.org/2001/XMLSchema-instance");
                 if (ignoredNamespaces.contains(attr.getNamespaceURI())) continue;
 
-                List<String> ignoredNames = Arrays.asList("xml:lang");
+                List<String> ignoredNames = Collections.singletonList("xml:lang");
                 if (ignoredNames.contains(attr.getName())) continue;
 
                 if(!setRecordFieldFromNode) {

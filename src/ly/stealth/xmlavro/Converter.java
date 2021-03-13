@@ -100,7 +100,7 @@ public class Converter {
     }
 
     private static class BaseDirResolver implements SchemaBuilder.Resolver {
-        private File baseDir;
+        private final File baseDir;
         private BaseDirResolver(File baseDir) { this.baseDir = baseDir; }
 
         public InputStream getStream(String systemId) {
