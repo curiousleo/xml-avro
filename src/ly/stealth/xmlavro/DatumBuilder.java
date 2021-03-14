@@ -1,5 +1,6 @@
 package ly.stealth.xmlavro;
 
+import java.util.stream.Stream;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.w3c.dom.*;
@@ -68,6 +69,18 @@ public class DatumBuilder {
         }
     }
 
+    public <T> Stream<T> streamData(Schema schema, File file) {
+      try (InputStream stream = new FileInputStream(file)) {
+        return streamData(schema, new InputSource(stream));
+      } catch (IOException e) {
+        throw new ConverterException(e);
+      }
+    }
+
+    public <T> Stream<T> streamData(Schema schema, InputSource source) {
+        return createDatum(parse(source));
+    }
+
     public <T> T createDatum(Reader reader) {
         return createDatum(new InputSource(reader));
     }
@@ -128,7 +141,7 @@ public class DatumBuilder {
         return createNodeDatum(types.get(1), source, false);
     }
 
-    private Object createValue(Schema.Type type, String text) {
+    Object createValue(Schema.Type type, String text) {
         if (type == Schema.Type.BOOLEAN)
             return "true".equals(text) || "1".equals(text);
 

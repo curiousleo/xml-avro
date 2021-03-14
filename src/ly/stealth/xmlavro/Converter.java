@@ -16,14 +16,25 @@
  */
 package ly.stealth.xmlavro;
 
+import java.util.function.Consumer;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.validation.SchemaFactory;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.xerces.jaxp.SAXParserFactoryImpl;
+import org.apache.xerces.jaxp.validation.XMLSchemaFactory;
+import org.xml.sax.SAXException;
 
 public class Converter {
     public static Schema createSchema(String xsd) { return new SchemaBuilder().createSchema(xsd); }
@@ -111,7 +122,8 @@ public class Converter {
         }
     }
 
-    public static void main(String... args) throws IOException {
+    public static void main(String... args)
+        throws IOException, SAXException, ParserConfigurationException {
         Options opts;
         try {
             opts = new Options(args);
@@ -133,11 +145,30 @@ public class Converter {
         }
 
         DatumBuilder datumBuilder = new DatumBuilder(schema);
-        Object datum = datumBuilder.createDatum(opts.xmlFile);
+//        Object datum = datumBuilder.createDatum(opts.xmlFile);
+//
+//        try (OutputStream stream = new FileOutputStream(opts.avroFile)) {
+//            DatumWriter<Object> datumWriter = new SpecificDatumWriter<>(schema);
+//            datumWriter.write(datum, EncoderFactory.get().directBinaryEncoder(stream, null));
+//        }
 
-        try (OutputStream stream = new FileOutputStream(opts.avroFile)) {
-            DatumWriter<Object> datumWriter = new SpecificDatumWriter<>(schema);
-            datumWriter.write(datum, EncoderFactory.get().directBinaryEncoder(stream, null));
-        }
+        final SchemaFactory schemaFactory = new XMLSchemaFactory();
+        final SAXParserFactory parserFactory = new SAXParserFactoryImpl();
+        parserFactory.setNamespaceAware(true);
+        parserFactory.setSchema(schemaFactory.newSchema(opts.xsdFile));
+        final SAXParser parser = parserFactory.newSAXParser();
+        final var datumWriter = new GenericDatumWriter<>(schema.getField("drug").schema());
+        final var encoder = EncoderFactory.get().jsonEncoder(schema, System.out);
+        final var writer = new Consumer<>() {
+            @Override
+            public void accept(Object o) {
+                try {
+                    datumWriter.write(o, encoder);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        parser.parse(opts.xmlFile, new SAX2RecordHandler(schema, "drug", datumBuilder, writer));
     }
 }
